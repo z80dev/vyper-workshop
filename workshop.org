@@ -1,36 +1,93 @@
 #+title: Vyper Workshop
 
-welcome to ETH Denver. hack and make some friends :)
+welcome to ETH Denver. hack and make some friends :^)
 
 * Who is z80
+
 interests: lisp, vyper, compilers, NFTs, defi, ZK
+twitter: 0xz80
 * What is Vyper?
+
 Vyper is a pythonic smart contract language for the EVM. Think of it as a replacement for Solidity. If you know basic Python, you know most of Vyper.
 * Why Vyper?
+
 ** Simplicity
+
 ** Security
+
 ** Auditability
+
 ** Gas efficiency
+
 * Major Differences from Solidity
+
 - Pythonic Syntax
+
 - Code-sharing via modules (composition vs. inheritance)
+
 - Stricter requirements around dynamic-length arrays
+
 - Explicit marking of external calls
+
+* Simplicity
+
+** Iterators
+#+begin_src vyper
+some_nums: DynArray[uint256, 10]
+
+@external
+def sum_nums():
+    total: uint256 = 0
+    for x: uint256 in some_nums:
+        total += x
+    return total
+#+end_src
+
+#+begin_src solidity
+for (int i = 0; i < arr.length;) {
+    total = total + some_nums[i];
+    unchecked {
+        ++i;
+    }
+}
+#+end_src
+
+* Simplicity
+
+** =send= function
+#+begin_src vyper
+send(msg.sender, self.balance) # 0 gas by default
+send(msg.sender, self.balance, gas=1000000) # can specify gas as kwarg
+#+end_src
+
 * Gas Efficiency
+
 ** Smaller bytecode output (cheaper deployment)
+
 ** Smarter bytecode generation (cheaper usage)
-* Libraries
-** Snekmate is really all you need
-By the one and only pcaversaccio. Vyper's equivalent to OpenZeppelin/Solmate/Solady
+
 * Tooling
+
 ** ApeWorx (Ape)
+
 Pythonic framework for smart contract development. Think of it like Hardhat/Foundry, in Python.
+
 ** Titanoboa
+
 A "vyper interpreter" of sorts. Great tool for rapid iteration, testing, and more.
+
 ** Foundry
+
 Foundry support for Vyper is pretty good now! With some limitations, can feel similar to working with Solidity.
+
+* Libraries
+
+** Snekmate is really all you need
+
+By the one and only pcaversaccio. Vyper's equivalent to OpenZeppelin/Solmate/Solady
+
 * Example 1: Counter
-#+NAME: Counter.vy
+
 #+BEGIN_SRC vyper
 # pragma version ^0.4.0
 count: public(uint256)
@@ -47,14 +104,72 @@ def increment():
 def decrement():
     self.count -= 1
 #+END_SRC
+
+* Modules
+
+Vyper modules provide similar functionality to Solidity's inheritance pattern, but with clearer separation of concerns between units of business logic.
+
+Modules imports look and feel similar to python imports, with some additional initialization instructions required.
+
+Snekmate libraries are all designed to be usable as modules.
+
+* Example 2: Ownable Counter
+#+begin_src vyper
+# pragma version ^0.4.0
+from snekmate.auth import ownable
+
+initializes: ownable
+
+count: public(uint256)
+
+@deploy
+def __init__(start_value: uint256):
+    self.count = start_value
+
+@external
+def increment():
+    self.count += 1
+
+@external
+def decrement():
+    ownable._check_owner()
+    self.count -= 1
+
+exports: ownable.owner
+#+end_src
+
+* Example 3: Ownable ERC20
+#+begin_src vyper
+# pragma version ^0.4.0
+
+from snekmate.auth import ownable
+from snekmate.tokens import erc20
+
+initializes: ownable
+initializes: erc20[ownable := ownable]
+
+@deploy
+def __init__():
+    ownable.__init__()
+    erc20.__init__("OwnableERC20", "OERC", 18, "OwnableERC20", "1.0")
+
+exports: erc20.__interface__
+#+end_src
 * Explicit external calls
+
 Vyper 0.4.0 introduced marking external calls with `extcall` or `staticcall` depending on the type of call. This is meant to improve security and auditability.
+
 ** extcall
+
 Used for calls that can change state
+
 ** staticcall
+
 Used for calls to external view functions, i.e. cannot change state
-* Example 2: NameManager
+
+* Example 3: NameManager
 #+BEGIN_SRC vyper
+# pragma version ^0.4.0
 interface INameHaver:
     def name() -> String[30]: view
     def set_name(name: String[30]) -> bool: nonpayable
@@ -68,5 +183,75 @@ def check_name(target: address) -> String[30]:
 def set_name(target: address, name: String[30]):
     assert extcall INameHaver(target).set_name(name) # assert useful b.c. of bool return
     return
-
 #+END_SRC
+* Testing with Foundry
+
+** Foundry supports deploying Vyper contracts via `deployCode`
+
+This feels almost as seamless as working with solidity contracts, aside from abi encoding constructor arguments.
+
+** Fuzzing, invariants, and other advanced testing features work as expected.
+
+* Testing with Ape
+
+** Project-level conveniences
+
+Great for mixed solidity-vyper codebases, from the POV of your scripts/tests there is no difference
+
+** Python-based
+
+Lets you leverage pytest features such as fixtures
+
+* Testing with Boa
+
+** Most "low-level"
+
+** Great for things like testing internal functions directly
+
+** Complex test setup can be replaced with arbitrary code evaluation
+
+* Testing with Boa
+
+** Boa Superpowers
+
+*** Arbitrary execution
+
+*** Access internal functions
+
+*** Network mode
+
+* This covers most of the basics
+
+You can write many of the usual smart contracts with what we've covered so far. Occasionally, you'll hit some trickier problems that will require some more advanced features. Vyper has some really cool ones.
+
+* Advanced Features 1: =default_return_value=
+
+Some tokens (famously, USDT on eth mainnet) do not properly implement the ERC20 standard.
+
+USDT does not return a boolean as expected
+
+#+begin_src vyper
+assert ERC20(token).transferFrom(bob, alice, 100) # this will always fail with USDT, because it never returns a bool
+#+end_src
+
+* Advanced Features 1: =default_return_value=
+
+=default_return_value= lets you handle this gracefully
+
+#+begin_src vyper
+assert ERC20(token).transferFrom(bob, alice, 100, default_return_value=False) # this will work with compliant tokens + USDT
+#+end_src
+
+* Advanced Features 2: raw builtin functions
+
+** raw_call
+
+** raw_revert
+
+useful for custom errors
+
+#+begin_src vyper
+raw_revert(method_id("SomeError()"))
+#+end_src
+
+** raw_log
