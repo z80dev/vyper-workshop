@@ -16,6 +16,12 @@ Vyper is a pythonic smart contract language for the EVM. Think of it as a replac
 - Code-sharing via modules (composition vs. inheritance)
 - Stricter requirements around dynamic-length arrays
 - Explicit marking of external calls
+* Gas Efficiency
+** Smaller bytecode output (cheaper deployment)
+** Smarter bytecode generation (cheaper usage)
+* Libraries
+** Snekmate is really all you need
+By the one and only pcaversaccio. Vyper's equivalent to OpenZeppelin/Solmate/Solady
 * Tooling
 ** ApeWorx (Ape)
 Pythonic framework for smart contract development. Think of it like Hardhat/Foundry, in Python.
@@ -23,12 +29,6 @@ Pythonic framework for smart contract development. Think of it like Hardhat/Foun
 A "vyper interpreter" of sorts. Great tool for rapid iteration, testing, and more.
 ** Foundry
 Foundry support for Vyper is pretty good now! With some limitations, can feel similar to working with Solidity.
-* Libraries
-** Snekmate is really all you need
-By the one and only pcaversaccio. Vyper's equivalent to OpenZeppelin/Solmate/Solady
-* Gas Efficiency
-** Smaller bytecode output (cheaper deployment)
-** Smarter bytecode generation (cheaper usage)
 * Example 1: Counter
 #+NAME: Counter.vy
 #+BEGIN_SRC vyper
@@ -70,4 +70,3 @@ def set_name(target: address, name: String[30]):
     return
 
 #+END_SRC
-*
