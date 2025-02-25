@@ -18,7 +18,7 @@ curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
 
-3. **Install Dependencies with UV**
+3. **Install Python Dependencies with UV**
 ```bash
 uv add eth-ape ape-vyper vyper titanoboa ipython
 ```
