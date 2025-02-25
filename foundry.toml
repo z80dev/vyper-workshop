@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+out = "out"
+skip = ["**/lib/snekmate/**"]
+libs = ["lib", "lib/snekmate/src"]
+auto_detect_remappings = false
+chain_id = 8453
+auto_detect_solc = false
+solc_version = "0.8.28"
+evm_version = "cancun"
+via_ir = false
+cbor_metadata = true
+use_literal_content = false
+bytecode_hash = "none"
+optimizer = true
+optimizer_runs = 1000
+libraries = []
