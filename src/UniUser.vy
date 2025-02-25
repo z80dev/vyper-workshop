@@ -15,5 +15,5 @@ interface SwapRouter:
 
 @external
 def doSwap(router: address, params: ExactInputSingleParams):
-    SwapRouter(router).exactInputSingle(params)
+    extcall SwapRouter(router).exactInputSingle(params)
     return

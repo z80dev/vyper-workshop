@@ -4,8 +4,10 @@ welcome to ETH Denver. hack and make some friends :^)
 
 * Who is z80
 
-interests: lisp, vyper, compilers, NFTs, defi, ZK
+interests: emacs, lisp, python, rust,  vyper, compilers, NFTs, defi, ZK
+
 twitter: 0xz80
+
 * What is Vyper?
 
 Vyper is a pythonic smart contract language for the EVM. Think of it as a replacement for Solidity. If you know basic Python, you know most of Vyper.
@@ -35,6 +37,7 @@ Vyper is a pythonic smart contract language for the EVM. Think of it as a replac
 #+begin_src vyper
 some_nums: DynArray[uint256, 10]
 
+@view
 @external
 def sum_nums():
     total: uint256 = 0
@@ -43,12 +46,18 @@ def sum_nums():
     return total
 #+end_src
 
+Solidity equivalent would look something like:
+
 #+begin_src solidity
-for (int i = 0; i < arr.length;) {
-    total = total + some_nums[i];
-    unchecked {
-        ++i;
+function sumNums() external view returns (uint256) {
+    uint256 total = 0;
+    for (int i = 0; i < arr.length;) {
+        total = total + some_nums[i];
+        unchecked {
+            ++i;
+        }
     }
+    return total;
 }
 #+end_src
 
@@ -231,7 +240,7 @@ Some tokens (famously, USDT on eth mainnet) do not properly implement the ERC20 
 USDT does not return a boolean as expected
 
 #+begin_src vyper
-assert ERC20(token).transferFrom(bob, alice, 100) # this will always fail with USDT, because it never returns a bool
+assert ERC20(token).transferFrom(bob, alice, 100) # this always fails with USDT, no return val
 #+end_src
 
 * Advanced Features 1: =default_return_value=
